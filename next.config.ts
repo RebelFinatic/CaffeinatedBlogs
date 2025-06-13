@@ -18,6 +18,13 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Required for Supabase server actions to work correctly with redirects
+  // This is a temporary workaround for a Next.js issue with Server Actions and redirects
+  // experimental: {
+  //   serverActions: {
+  //     allowedOrigins: ['localhost:9002', process.env.NEXT_PUBLIC_SITE_URL || ''],
+  //   },
+  // },
 };
 
 export default nextConfig;
