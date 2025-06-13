@@ -1,9 +1,18 @@
-"use client"; // Error components must be Client Components
+"use client"; 
 
+import type { Metadata } from 'next';
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+
+// Note: Metadata in client components is not directly supported for SEO in the same way as server components.
+// However, setting a title via document.title can be done. For full SEO, error pages are often static or server-rendered.
+// For this setup, we'll keep it simple.
+// export const metadata: Metadata = {
+//   title: 'Error | CaffeinatedBlogs',
+//   description: 'An error occurred while trying to load this page.',
+// };
 
 export default function Error({
   error,
@@ -14,6 +23,7 @@ export default function Error({
 }) {
   useEffect(() => {
     console.error(error);
+    document.title = 'Error | CaffeinatedBlogs';
   }, [error]);
 
   return (

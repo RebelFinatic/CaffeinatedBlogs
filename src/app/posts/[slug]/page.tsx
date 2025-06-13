@@ -5,11 +5,56 @@ import { ArticleSummary } from '@/components/blog/ArticleSummary';
 import { generateArticleSummary } from '@/ai/flows/generate-article-summary';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
-import { Badge } from '@/components/ui/badge';
+import type { Metadata } from 'next';
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com';
 
 interface PostPageProps {
   params: {
     slug: string;
+  };
+}
+
+export async function generateMetadata({ params }: PostPageProps): Promise<Metadata> {
+  const post = getPostBySlug(params.slug);
+
+  if (!post) {
+    return {
+      title: 'Post Not Found',
+    };
+  }
+
+  const ogImageUrl = post.imageUrl.includes('placehold.co')
+    ? `https://placehold.co/1200x630.png?text=${encodeURIComponent(post.title)}` // Use a 1200x630 placeholder for OG
+    : post.imageUrl;
+
+  return {
+    title: post.title,
+    description: post.excerpt,
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+      url: `${SITE_URL}/posts/${post.slug}`,
+      type: 'article',
+      publishedTime: new Date(post.date).toISOString(),
+      authors: [post.author],
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: post.title,
+        },
+      ],
+      siteName: 'CaffeinatedBlogs',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.excerpt,
+      images: [ogImageUrl],
+      // creator: '@authorTwitterHandle', // Consider adding author's Twitter handle if available
+    },
   };
 }
 
@@ -22,8 +67,37 @@ export default async function PostPage({ params }: PostPageProps) {
 
   const summaryData = await generateArticleSummary({ articleContent: post.content });
 
-  // Split content into paragraphs for rendering
   const paragraphs = post.content.split('\\n').map(p => p.trim()).filter(p => p.length > 0);
+
+  const ogImageUrl = post.imageUrl.includes('placehold.co')
+  ? `https://placehold.co/1200x630.png?text=${encodeURIComponent(post.title)}`
+  : post.imageUrl;
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": `${SITE_URL}/posts/${post.slug}`
+    },
+    "headline": post.title,
+    "description": post.excerpt,
+    "image": ogImageUrl,
+    "author": {
+      "@type": "Person", // Or Organization if the blog uses a general author
+      "name": post.author
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "CaffeinatedBlogs",
+      "logo": {
+        "@type": "ImageObject",
+        "url": `${SITE_URL}/logo.png` // Replace with your actual logo URL
+      }
+    },
+    "datePublished": new Date(post.date).toISOString(),
+    "dateModified": new Date(post.date).toISOString() // Assuming no separate modified date for now
+  };
 
   return (
     <>
@@ -35,16 +109,17 @@ export default async function PostPage({ params }: PostPageProps) {
               {post.title}
             </h1>
             <div className="text-muted-foreground text-sm mb-4">
-              <span>Published on {post.date} by {post.author}</span>
+              <span>Published on {new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} by {post.author}</span>
             </div>
             <div className="relative w-full h-64 md:h-96 rounded-lg overflow-hidden shadow-lg mb-6">
                <Image
-                src={post.imageUrl.replace('600x400', '1200x600')} // Use a larger placeholder for article page
+                src={post.imageUrl.replace('600x400', '1200x600')} 
                 alt={post.title}
-                layout="fill"
-                objectFit="cover"
+                fill // Changed from layout="fill"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" // Added sizes prop
+                style={{ objectFit: 'cover' }} // Changed from objectFit="cover"
                 data-ai-hint={post.imageHint + " article"}
-                priority // Prioritize loading of the main article image
+                priority 
               />
             </div>
           </header>
@@ -61,24 +136,10 @@ export default async function PostPage({ params }: PostPageProps) {
         </article>
       </main>
       <Footer />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
     </>
   );
 }
-
-// Add Tailwind prose styles for dark mode
-// Add to globals.css or a specific component if preferred.
-// For simplicity, here's an inline style for prose-invert if needed,
-// but Tailwind's prose classes with `dark:` variants usually work with `html.dark`.
-// Since we always apply `dark`, `prose-invert` should work.
-// Check if prose colors need to be adjusted based on current foreground/accent.
-// Default prose-invert colors from @tailwindcss/typography:
-// prose-invert:
-//   --tw-prose-body: theme('colors.zinc.400');
-//   --tw-prose-headings: theme('colors.zinc.100');
-//   --tw-prose-links: theme('colors.zinc.100');
-//   --tw-prose-bold: theme('colors.zinc.100');
-
-// We want to use our theme colors.
-// prose-headings:text-foreground, prose-strong:text-foreground
-// prose-a:text-accent, hover:prose-a:text-primary (primary is darker, maybe accent/90)
-// text-foreground/90 for body

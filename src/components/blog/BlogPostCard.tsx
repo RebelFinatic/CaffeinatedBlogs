@@ -7,19 +7,22 @@ import { ArrowRight } from 'lucide-react';
 
 interface BlogPostCardProps {
   post: Post;
+  priority?: boolean; // Add priority prop
 }
 
-export function BlogPostCard({ post }: BlogPostCardProps) {
+export function BlogPostCard({ post, priority = false }: BlogPostCardProps) {
   return (
     <Card className="flex flex-col h-full overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card">
-      <Link href={`/posts/${post.slug}`} className="block">
+      <Link href={`/posts/${post.slug}`} className="block" aria-label={`Read more about ${post.title}`}>
         <div className="relative w-full h-48 sm:h-56">
           <Image
             src={post.imageUrl}
             alt={post.title}
-            layout="fill"
-            objectFit="cover"
+            fill // Changed from layout="fill"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" // Added sizes prop
+            style={{ objectFit: 'cover' }} // Changed from objectFit="cover"
             data-ai-hint={post.imageHint}
+            priority={priority} // Use the priority prop
           />
         </div>
       </Link>
@@ -33,7 +36,7 @@ export function BlogPostCard({ post }: BlogPostCardProps) {
       </CardContent>
       <CardFooter className="flex justify-between items-center mt-auto pt-4">
         <div className="text-sm text-muted-foreground">
-            <span>{post.date}</span> by <span>{post.author}</span>
+            <span>{new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span> by <span>{post.author}</span>
         </div>
         <Button asChild variant="ghost" size="sm" className="text-accent hover:text-accent hover:bg-accent/10">
           <Link href={`/posts/${post.slug}`}>

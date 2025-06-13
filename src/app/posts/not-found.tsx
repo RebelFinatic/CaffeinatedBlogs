@@ -1,7 +1,16 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+
+export const metadata: Metadata = {
+  title: 'Post Not Found | CaffeinatedBlogs',
+  description: 'The blog post you are looking for could not be found.',
+  robots: {
+    index: false, // No need to index "not found" pages
+  }
+};
 
 export default function NotFound() {
   return (
