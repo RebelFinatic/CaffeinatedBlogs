@@ -31,32 +31,35 @@ jobs:
       run: npm ci
     
     - name: Run ESLint
-      run: npm run lint -- lint-fast
-      env:
-        # Avoid interactive ESLint setup prompts
-        ESLINT_NO_INTERACTIVE: true
+      run: npm run lint-fast
     
     - name: Run unit tests
       run: npm test || echo "No tests found, skipping"
     
     - name: Build project
       run: npm run build
-    
+
+    - name: Start Next.js server
+      run: npm run start &
+      env:
+        NODE_ENV: production
+
+    - name: Wait for server to be available
+      run: npx wait-on http://localhost:3000
+
     - name: Run Lighthouse for SEO/Performance audit
       run: |
         npm install -g lighthouse
         lighthouse http://localhost:3000 --preset=desktop --output=json --output-path=./lighthouse-report.json
-      env:
-        NEXT_PUBLIC_HOST: http://localhost:3000
-    
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: .next
         path: .next/
-    
+
     - name: Upload Lighthouse report
       uses: actions/upload-artifact@v4
       with:
         name: lighthouse-report
-        path: .lighthouse-report.json
+        path: ./lighthouse-report.json

@@ -9,7 +9,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "lint-fast": "next lint -- --no-progress",
+    "lint-fast": "next lint --quiet",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
