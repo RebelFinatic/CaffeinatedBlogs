@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'Dark Scroll AI',
-  description: 'AI Powered Blog with a sleek dark theme.',
+  title: 'CaffeinatedBlogs',
+  description: 'A blog of caffeinated developers, powered by AI.',
 };
 
 export default function RootLayout({
